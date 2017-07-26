@@ -6,9 +6,15 @@ using UnityEngine.Events;
 public class ThrowControl : MonoBehaviour {
     public float ballStartZ = 2.5f;
 
+    public Vector2 sensivity = new Vector2(8f, 50f);
+    public float speed = 3f;
+    public float resetBallAfterSeconds = 2f;
+
+    private Vector3 direction;
+
     private Vector3 newBallPosition;
     private Rigidbody _rigidbody;
-    private Collider _collider;
+    //private Collider _collider;
     private bool isHolding;
     private bool isThrown;
     private bool isInitialized = false;
@@ -21,7 +27,7 @@ public class ThrowControl : MonoBehaviour {
 
     void Start() {
         _rigidbody = GetComponent<Rigidbody>();
-        _collider = GetComponent<Collider>();
+        //_collider = GetComponent<Collider>();
         ReadyBall();
     }
 
@@ -62,7 +68,27 @@ public class ThrowControl : MonoBehaviour {
     }
 
     void Throw(Vector2 inputPosition) {
+        _rigidbody.constraints = RigidbodyConstraints.None;
+        _rigidbody.useGravity = true;
+
+        inputPositionDifference.y = (inputPosition.y - inputPositionPivot.y) / Screen.height * sensivity.y;
+
+        inputPositionDifference.x = (inputPosition.x - inputPositionPivot.x) / Screen.width;
+        inputPositionDifference.x =
+            Mathf.Abs(inputPosition.x - inputPositionPivot.x) / Screen.width * sensivity.x * inputPositionDifference.x;
+
+        direction = new Vector3(inputPositionDifference.x, 0f, 1f);
+        direction = Camera.main.transform.TransformDirection(direction);
+
+        _rigidbody.AddForce((direction + Vector3.up) * speed * inputPositionDifference.y);
+
+        isHolding = false;
+        isThrown = true;
+
+        if (_rigidbody)
+            Invoke("ReadyBall", resetBallAfterSeconds);
     }
+
 
 
     void ReadyBall() {
