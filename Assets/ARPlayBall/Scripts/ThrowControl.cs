@@ -4,17 +4,18 @@ using UnityEngine;
 using UnityEngine.Events;
 
 public class ThrowControl : MonoBehaviour {
-    public float ballStartZ = 2.5f;
+    public float ballStartZ = 0.5f;
 
-    public Vector2 sensivity = new Vector2(8f, 50f);
-    public float speed = 3f;
-    public float resetBallAfterSeconds = 2f;
+    public Vector2 sensivity = new Vector2(8f, 100f);
+    public float speed = 5f;
+    public float resetBallAfterSeconds = 3f;
+
+    public UnityEvent OnReset;
 
     private Vector3 direction;
 
     private Vector3 newBallPosition;
     private Rigidbody _rigidbody;
-    //private Collider _collider;
     private bool isHolding;
     private bool isThrown;
     private bool isInitialized = false;
@@ -27,8 +28,8 @@ public class ThrowControl : MonoBehaviour {
 
     void Start() {
         _rigidbody = GetComponent<Rigidbody>();
-        //_collider = GetComponent<Collider>();
         ReadyBall();
+        isInitialized = true;
     }
 
     void Update() {
@@ -92,6 +93,8 @@ public class ThrowControl : MonoBehaviour {
 
 
     void ReadyBall() {
+        CancelInvoke();
+
         Vector3 screenPosition = new Vector3(0.5f, 0.1f, ballStartZ);
 
         transform.position = Camera.main.ViewportToWorldPoint(screenPosition);
@@ -102,18 +105,19 @@ public class ThrowControl : MonoBehaviour {
         _rigidbody.useGravity = false;
         _rigidbody.velocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
-        _rigidbody.constraints = RigidbodyConstraints.FreezeAll;
-        //_collider.enabled = false;
+        //_rigidbody.constraints = RigidbodyConstraints.FreezeAll;
 
         transform.rotation = Quaternion.Euler(0f, 200f, 0f);
         transform.SetParent(Camera.main.transform);
+
+        if (isInitialized)
+            OnReset.Invoke();
     }
 
     void OnTouch() {
         inputPositionCurrent.z = ballStartZ;
         newBallPosition = Camera.main.ScreenToWorldPoint(inputPositionCurrent);
         transform.localPosition = newBallPosition;
-        //transform.localPosition = Vector3.MoveTowards(transform.localPosition, newBallPosition, Time.deltaTime);
     }
 
 }
